@@ -55,7 +55,8 @@ class PrinterADCScaled:
         mcu_adc = ppins.setup_pin('adc', pin_name)
         mcu_adc.setup_adc_callback(REPORT_TIME, callback)
         mcu_adc.setup_minmax(SAMPLE_TIME, SAMPLE_COUNT, minval=0., maxval=1.,
-                             range_check_count=RANGE_CHECK_COUNT)
+                             range_check_count=RANGE_CHECK_COUNT,
+                             name=self.name)
         query_adc = config.get_printer().load_object(config, 'query_adc')
         query_adc.register_adc(self.name + ":" + name, mcu_adc)
         return mcu_adc

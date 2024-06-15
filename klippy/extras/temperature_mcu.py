@@ -18,6 +18,7 @@ class PrinterTemperatureMCU:
         self.temp1 = self.adc1 = self.temp2 = self.adc2 = None
         self.min_temp = self.max_temp = 0.
         self.debug_read_cmd = None
+        self.name = config.get_name()
         # Read config
         mcu_name = config.get('sensor_mcu', 'mcu')
         self.temp1 = config.getfloat('sensor_temperature1', None)
@@ -32,7 +33,7 @@ class PrinterTemperatureMCU:
                                        '%s:ADC_TEMPERATURE' % (mcu_name,))
         self.mcu_adc.setup_adc_callback(REPORT_TIME, self.adc_callback)
         query_adc = config.get_printer().load_object(config, 'query_adc')
-        query_adc.register_adc(config.get_name(), self.mcu_adc)
+        query_adc.register_adc(self.name, self.mcu_adc)
         # Register callbacks
         if self.printer.get_start_args().get('debugoutput') is not None:
             self.mcu_adc.setup_minmax(SAMPLE_TIME, SAMPLE_COUNT,
@@ -92,7 +93,8 @@ class PrinterTemperatureMCU:
         adc_range = [self.calc_adc(t) for t in [self.min_temp, self.max_temp]]
         self.mcu_adc.setup_minmax(SAMPLE_TIME, SAMPLE_COUNT,
                                   minval=min(adc_range), maxval=max(adc_range),
-                                  range_check_count=RANGE_CHECK_COUNT)
+                                  range_check_count=RANGE_CHECK_COUNT,
+                                  name=self.name)
     def config_unknown(self):
         raise self.printer.config_error("MCU temperature not supported on %s"
                                         % (self.mcu_type,))

@@ -492,17 +492,30 @@ class MCU_adc:
         self._report_clock = 0
         self._last_state = (0., 0.)
         self._oid = self._callback = None
-        self._mcu.register_config_callback(self._build_config)
         self._inv_max_adc = 0.
+        self._minmax_name = None
+        mcu_error = mcu.get_printer().lookup_object("mcu_error")
+        mcu_error.add_clarify("ADC out of range", self._clarify_adc_range)
+        mcu.register_config_callback(self._build_config)
+    def _clarify_adc_range(self, msg, details):
+        if self._minmax_name is None:
+            return None
+        last_value, last_read_time = self._last_state
+        if not last_read_time:
+            return None
+        if last_value >= self._min_sample and last_value <= self._max_sample:
+            return None
+        return "Sensor '%s' reporting out of range." % (self._minmax_name,)
     def get_mcu(self):
         return self._mcu
     def setup_minmax(self, sample_time, sample_count,
-                     minval=0., maxval=1., range_check_count=0):
+                     minval=0., maxval=1., range_check_count=0, name=None):
         self._sample_time = sample_time
         self._sample_count = sample_count
         self._min_sample = minval
         self._max_sample = maxval
         self._range_check_count = range_check_count
+        self._minmax_name = name
     def setup_adc_callback(self, report_time, callback):
         self._report_time = report_time
         self._callback = callback
